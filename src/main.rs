@@ -24,19 +24,17 @@ fn main() {
             String::from(REPLACEMENT_CHARACTER)
         }
     };
-    let get_code = |x: &str| into_unicode(x).map(String::from).unwrap_or(keep_orig(x));
+    let get_code = |x: &str| into_unicode(x).map(String::from).unwrap_or_else(|| keep_orig(x));
 
     if opts.codes.is_empty() {
-        for input in std::io::stdin().lock().lines() {
-            if let Ok(input) = input {
-                let output = itertools::Itertools::intersperse(
-                    input.split_whitespace().map(get_code),
-                    String::from(" "),
-                )
-                .collect::<String>();
+        for input in std::io::stdin().lock().lines().flatten() {
+            let output = itertools::Itertools::intersperse(
+                input.split_whitespace().map(get_code),
+                String::from(" "),
+            )
+            .collect::<String>();
 
-                print!("{}", output);
-            }
+            print!("{}", output);
         }
     } else {
         let output = itertools::Itertools::intersperse(
@@ -52,7 +50,7 @@ fn main() {
 fn into_unicode(input: &str) -> Option<char> {
     let input = match input {
         x if x.starts_with("0x") => u32::from_str_radix(&input[2..], 16).ok()?,
-        x => u32::from_str_radix(&x, 10).ok()?,
+        x => x.parse().ok()?,
     };
 
     char::from_u32(input)
