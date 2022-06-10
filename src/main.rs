@@ -22,12 +22,11 @@ fn main() {
 }
 
 fn into_unicode(input: &str) -> char {
-    let input = match input.get(0..2) {
-        Some(hex) if hex == "0x" => u32::from_str_radix(&input[2..], 16),
-        Some(_) => u32::from_str_radix(input, 10),
-        _ => panic!("Error when reading stdin"),
+    let input = match input {
+        x if x.starts_with("0x") => u32::from_str_radix(&input[2..], 16),
+        x => u32::from_str_radix(&x, 10),
     };
 
     let input = input.unwrap_or(REPLACEMENT_CHARACTER as u32);
-    char::from_u32(input).unwrap_or(REPLACEMENT_CHARACTER)
+    char::from_u32(input).unwrap()
 }
