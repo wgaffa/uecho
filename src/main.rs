@@ -1,6 +1,5 @@
-#![feature(iter_intersperse)]
-
 use std::char::REPLACEMENT_CHARACTER;
+use std::io::BufRead;
 
 use structopt::StructOpt;
 
@@ -28,24 +27,23 @@ fn main() {
     let get_code = |x: &str| into_unicode(x).map(String::from).unwrap_or(keep_orig(x));
 
     if opts.codes.is_empty() {
-        for input in std::io::stdin().lines() {
+        for input in std::io::stdin().lock().lines() {
             if let Ok(input) = input {
-                let output = input
-                    .split_whitespace()
-                    .map(get_code)
-                    .intersperse(String::from(" "))
-                    .collect::<String>();
+                let output = itertools::Itertools::intersperse(
+                    input.split_whitespace().map(get_code),
+                    String::from(" "),
+                )
+                .collect::<String>();
 
                 print!("{}", output);
             }
         }
     } else {
-        let output = opts
-            .codes
-            .into_iter()
-            .map(|x| get_code(&x))
-            .intersperse(String::from(" "))
-            .collect::<String>();
+        let output = itertools::Itertools::intersperse(
+            opts.codes.into_iter().map(|x| get_code(&x)),
+            String::from(" "),
+        )
+        .collect::<String>();
 
         print!("{}", output);
     }
