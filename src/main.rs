@@ -1,32 +1,61 @@
+#![feature(iter_intersperse)]
+
 use std::char::REPLACEMENT_CHARACTER;
 
-fn main() {
-    let args = std::env::args().skip(1).collect::<Vec<_>>();
+use structopt::StructOpt;
 
-    if args.is_empty() {
+#[derive(StructOpt)]
+#[structopt(about = "Echo the unicode character")]
+struct Opts {
+    #[structopt(short = "e", long = "echo-original")]
+    /// Echo original input if it fails to find it's unicode character
+    echo_orig: bool,
+
+    /// A list of unicode points to convert
+    codes: Vec<String>,
+}
+
+fn main() {
+    let opts = Opts::from_args();
+
+    let keep_orig = |def: &str| {
+        if opts.echo_orig {
+            String::from(def)
+        } else {
+            String::from(REPLACEMENT_CHARACTER)
+        }
+    };
+    let get_code = |x: &str| into_unicode(x).map(String::from).unwrap_or(keep_orig(x));
+
+    if opts.codes.is_empty() {
         for input in std::io::stdin().lines() {
             if let Ok(input) = input {
-                let words = input.split_whitespace()
-                    .map(|x| into_unicode(x) );
+                let output = input
+                    .split_whitespace()
+                    .map(get_code)
+                    .intersperse(String::from(" "))
+                    .collect::<String>();
 
-                for word in words {
-                    print!("{}", word);
-                }
+                print!("{}", output);
             }
         }
     } else {
-        for input in args {
-            print!("{}", into_unicode(&input));
-        }
+        let output = opts
+            .codes
+            .into_iter()
+            .map(|x| get_code(&x))
+            .intersperse(String::from(" "))
+            .collect::<String>();
+
+        print!("{}", output);
     }
 }
 
-fn into_unicode(input: &str) -> char {
+fn into_unicode(input: &str) -> Option<char> {
     let input = match input {
-        x if x.starts_with("0x") => u32::from_str_radix(&input[2..], 16),
-        x => u32::from_str_radix(&x, 10),
+        x if x.starts_with("0x") => u32::from_str_radix(&input[2..], 16).ok()?,
+        x => u32::from_str_radix(&x, 10).ok()?,
     };
 
-    let input = input.unwrap_or(REPLACEMENT_CHARACTER as u32);
-    char::from_u32(input).unwrap()
+    char::from_u32(input)
 }
