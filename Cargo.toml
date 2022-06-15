@@ -2,6 +2,10 @@
 name = "uecho"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "The unicode of the echo command"
+homepage = "https://github.com/wgaffa/uecho"
+repository = "https://github.com/wgaffa/uecho"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
