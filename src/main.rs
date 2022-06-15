@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use std::char::REPLACEMENT_CHARACTER;
 use std::io::BufRead;
 
